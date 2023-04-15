@@ -1,0 +1,57 @@
+---
+title: "BIOSTAT 626 Mid 1"
+output: pdf_document
+date: "2023-03-30"
+---
+
+```{r setup, include=FALSE}
+train_data <- read.table("training_data.txt", header=TRUE)
+test_data <- read.table("test_data.txt", header=TRUE)
+library(ggplot2)
+library(e1071)
+library(kernlab)
+library(MASS)
+library(caret)
+```
+
+```{r}
+bin_act=train_data$activity
+train_res=rep(0,length(bin_act))
+for (i in 1:length(bin_act)){
+  if(bin_act[i] <= 3){
+    train_res[i]=1
+  }
+  else if(bin_act[i] > 3){
+    train_res[i]=0
+  }
+}
+modified=train_data[,-c(1,2)]
+modified_train=cbind(train_res, modified)
+train_res=as.factor(train_res)
+```
+
+```{r}
+svmfit_rad = svm(train_res ~ ., data=modified_train, kernel="radial", scale=F, cost=10)
+print(svmfit_rad)
+```
+
+
+```{r}
+test_data_m=test_data[,-1]
+pred_full = predict(svmfit_rad, test_data)
+for (i in 1:length(pred_full)){
+  if(pred_full[i] <= 0.5){
+    pred_full[i]=0
+  }
+  else{
+    pred_full[i]=1
+  }
+}
+output=as.data.frame(pred_full)
+```
+
+```{r}
+write.table(output, file="Binary_repsonse.txt", row.names=FALSE, col.names=FALSE, quote=FALSE)
+```
+
+
